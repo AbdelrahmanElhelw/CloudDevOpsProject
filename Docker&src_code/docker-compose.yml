@@ -1,0 +1,46 @@
+services:
+
+  database:
+    image: mysql:8.0
+    container_name: ivolve_db
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${DB_NAME}
+      - MYSQL_USER=${DB_USER}
+      - MYSQL_PASSWORD=${DB_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+
+  auth-service:
+    build: ./auth-service
+    container_name: ivolve_auth
+    environment:
+      - DB_HOST=database
+      - DB_PORT=${DB_PORT}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_NAME=${DB_NAME}
+    depends_on:
+      - database
+
+  roadmap-service:
+    build: ./roadmap-service
+    container_name: ivolve_roadmap
+
+  frontend:
+    build: ./frontend
+    container_name: ivolve_frontend
+    environment:
+      AUTH_SERVICE_URL: http://auth-service:5000
+      ROADMAP_SERVICE_URL: http://roadmap-service:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - auth-service
+      - roadmap-service
+
+volumes:
+  db_data:
