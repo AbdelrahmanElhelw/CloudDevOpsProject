@@ -1,0 +1,23 @@
+---
+- name: Install wget and apt-transport-https
+  apt:
+    name: 
+      - wget
+      - apt-transport-https
+    state: present
+
+- name: Download Trivy GPG key
+  get_url:
+    url: https://aquasecurity.github.io/trivy-repo/deb/public.key
+    dest: /usr/share/keyrings/trivy.key
+
+- name: Add Trivy repository
+  apt_repository:
+    repo: deb [signed-by=/usr/share/keyrings/trivy.key] https://aquasecurity.github.io/trivy-repo/deb generic main
+    state: present
+
+- name: Install Trivy
+  apt:
+    name: trivy
+    state: present
+    update_cache: yes
