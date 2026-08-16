@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: auth-container
-        image: <your-ecr-repo-url>/auth-service:latest
+        image: 800770414458.dkr.ecr.us-east-2.amazonaws.com/ivolve-app-repo:auth-8
         ports:
         - containerPort: 5000
         env:
