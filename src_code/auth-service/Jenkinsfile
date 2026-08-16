@@ -2,7 +2,7 @@
 
 buildPipeline(
     serviceName: 'auth',
-    servicePath: 'Docker&src_code/auth-service',
+    servicePath: 'src_code/auth-service',
     ecrRepoUrl: '123456789.dkr.ecr.us-east-2.amazonaws.com/ivolve-app-repo', // هنبقى نعدل ده برقم حسابك بعدين
     githubRepo: 'Abdelrahmanelhelw/CloudDevOpsProject' 
 )
