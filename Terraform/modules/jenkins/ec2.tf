@@ -30,7 +30,7 @@ resource "aws_security_group" "jenkins_sg" {
 # 2. Jenkins EC2 Instance
 resource "aws_instance" "jenkins" {
   ami           = data.aws_ami.ubuntu.id
-  instance_type = "t3.medium"
+  instance_type = "t3.small"
   subnet_id     = var.public_subnet_id
   key_name      = var.key_name
   # عشان نضمن انه هياخد public ip  بس

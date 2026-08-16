@@ -19,7 +19,7 @@ variable "private_subnets" {
 variable "azs" {
   description = "List of Availability Zones"
   type        = list(string)
-  default     = ["us-east-1a", "us-east-1b"]
+  default     = ["us-east-2a", "us-east-2b"]
 }
 
 variable "subnet_tags" {
@@ -30,5 +30,5 @@ variable "subnet_tags" {
 variable "key_name" {
   description = "The name of the AWS Key Pair to use for EC2"
   type        = string
-  # هنحط القيمة دي وإحنا بنعمل Apply أو في فايل tfvars
+ 
 }
