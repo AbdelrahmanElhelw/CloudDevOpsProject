@@ -3,6 +3,6 @@
 buildPipeline(
     serviceName: 'roadmap',
     servicePath: 'src_code/roadmap-service',
-    ecrRepoUrl: '123456789.dkr.ecr.us-east-2.amazonaws.com/ivolve-app-repo',
+    ecrRepoUrl: '800770414458.dkr.ecr.us-east-2.amazonaws.com/ivolve-app-repo',
     githubRepo: 'Abdelrahmanelhelw/CloudDevOpsProject'
 )
