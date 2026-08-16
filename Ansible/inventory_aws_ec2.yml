@@ -3,12 +3,12 @@ plugin: aws_ec2
 #Region of the Jenkins Server
 
 regions:
-  - us-east-1
+  - us-east-2
 
 #Conditions to filter the instances based on tags and state
 filters:
   # we want to get only the instances that have the tag "Role" with the value "Jenkins"
-  "tag:Role": "Jenkins"
+  "tag:Role": "jenkins"
   
   # we want to get only the instances that are in the "running" state
   instance-state-name: "running" 

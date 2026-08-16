@@ -4,7 +4,9 @@
     update_cache: yes
     cache_valid_time: 3600
 
-- name: Install OpenJDK 17 (Required for Jenkins)
+- name: Install OpenJDK 21 and fontconfig
   apt:
-    name: openjdk-17-jre
+    name: 
+      - openjdk-21-jre-headless
+      - fontconfig
     state: present

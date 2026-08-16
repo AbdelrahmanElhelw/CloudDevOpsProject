@@ -1,11 +1,11 @@
 ---
-name: Configure Jenkins Server
-hosts: tag_jenkins
+- name: Configure Jenkins Server
+  hosts: tag_jenkins
 
-become: yes
+  become: yes
 
-roles:
-  - java
-  - jenkins
-  - docker
-  - trivy
+  roles:
+    - java
+    - jenkins
+    - docker
+    - trivy
