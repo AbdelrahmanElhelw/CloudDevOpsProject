@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ivolve-microservices
+  namespace: argocd
+spec:
+  project: default
+  source:
+    # هنا هتحط لينك الـ Repo بتاعك على جيت هاب
+    repoURL: 'https://github.com/abdelrahmanelhelw/CloudDevOpsProject.git'
+    targetRevision: HEAD
+    # هنا بنقوله راقب فولدر الـ kubernetes اللي جواه الفايلات بتاعتنا
+    path: kubernetes 
+  destination:
+    # ده اللينك الداخلي للكوبرنيتيس (ثابت مبيتغيرش)
+    server: 'https://kubernetes.default.svc'
+    namespace: ivolve
+  syncPolicy:
+    automated:
+      prune: true      
+      selfHeal: true   
+    syncOptions:
+      - CreateNamespace=true 
