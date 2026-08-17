@@ -18,5 +18,6 @@ resource "aws_eks_node_group" "ivolve_nodes" {
     aws_iam_role_policy_attachment.eks_worker_node_policy,
     aws_iam_role_policy_attachment.eks_cni_policy,
     aws_iam_role_policy_attachment.ecr_read_only,
+    aws_iam_role_policy_attachment.ebs_csi_policy
   ]
 }
