@@ -8,7 +8,7 @@
 ![ArgoCD](https://img.shields.io/badge/ArgoCD-GitOps-brightgreen)
 
 ## 📖 Project Overview
-This project is a comprehensive implementation of a modern DevOps CI/CD pipeline and GitOps workflow. It provisions a highly available infrastructure on AWS, configures a CI server, builds and containerizes a microservices application, and deploys it to a Kubernetes cluster (EKS) automatically using ArgoCD.
+This project is a comprehensive implementation of a modern DevOps CI/CD pipeline and GitOps workflow for a microservices-based application. It covers the entire software development lifecycle: from local containerization and infrastructure provisioning to continuous integration, security scanning, and declarative continuous deployment using GitOps principles.
 
 ---
 
@@ -16,114 +16,103 @@ This project is a comprehensive implementation of a modern DevOps CI/CD pipeline
 
 ```mermaid
 graph TD
-    %% Define Colors
     classDef dev fill:#f9f9f9,stroke:#333,stroke-width:2px;
     classDef git fill:#f0e68c,stroke:#333,stroke-width:2px;
     classDef ci fill:#ffcccb,stroke:#333,stroke-width:2px;
     classDef cd fill:#d4edda,stroke:#333,stroke-width:2px;
     classDef aws fill:#ffebd6,stroke:#ff9900,stroke-width:2px;
+    classDef local fill:#e6f7ff,stroke:#333,stroke-width:2px;
 
-    Developer((Developer)) -->|1. Push Code| GitHub[(GitHub Repository)]:::git
+    Dev((Developer)) -->|1. Local Testing| Compose[Local Docker Compose]:::local
+    Dev -->|2. Push Code| GitHub[(GitHub Repository)]:::git
     
     subgraph CI Pipeline [Continuous Integration - Jenkins EC2]
-        Jenkins[Jenkins Pipeline]:::ci
+        Jenkins[Jenkins Master]:::ci
+        DockerBuild[Build Docker Image]:::ci
         Trivy[Trivy Security Scan]:::ci
-        DockerBuild[Docker Build]:::ci
     end
     
-    GitHub -->|2. Webhook / Pull| Jenkins
-    Jenkins -->|3. Build| DockerBuild
-    DockerBuild -->|4. Scan| Trivy
+    GitHub -->|3. Trigger Build| Jenkins
+    Jenkins --> DockerBuild --> Trivy
     
-    subgraph AWS Cloud [AWS Environment]
+    subgraph AWS Cloud [AWS Infrastructure]
         ECR[(AWS ECR)]:::aws
-        subgraph EKS Cluster [Amazon EKS]
-            ArgoCD[ArgoCD]:::cd
-            Ingress[NGINX Ingress]:::aws
-            Frontend[Frontend Pods]:::aws
-            Auth[Auth Service]:::aws
-            Roadmap[Roadmap Service]:::aws
-            MySQL[(MySQL StatefulSet)]:::aws
+        subgraph VPC [Custom VPC Network]
+            subgraph EKS Cluster [Amazon EKS - Private Subnets]
+                ArgoCD[ArgoCD GitOps Controller]:::cd
+                Ingress[NGINX Ingress Controller]:::aws
+                Frontend[Frontend Deployment]:::aws
+                Auth[Auth Service]:::aws
+                Roadmap[Roadmap Service]:::aws
+                MySQL[(MySQL StatefulSet)]:::aws
+            end
         end
     end
 
-    Trivy -->|5. Push Image| ECR
-    Jenkins -->|6. Update Manifest & Push| GitHub
+    Trivy -->|4. Push Secure Image| ECR
+    Jenkins -->|5. Update Image Tag & Push| GitHub
     
-    GitHub -->|7. Watch for Changes| ArgoCD
-    ArgoCD -->|8. Sync & Deploy| EKS_Cluster
+    GitHub -->|6. Auto Detect Changes| ArgoCD
+    ArgoCD -->|7. Sync & Deploy Manifests| EKS_Cluster
     
-    Ingress --> Frontend
-    Frontend --> Auth
-    Frontend --> Roadmap
-    Auth --> MySQL
+    Ingress -->|Route Traffic /| Frontend
+    Frontend -->|API Call| Auth
+    Frontend -->|API Call| Roadmap
+    Auth -->|Read/Write| MySQL
 ```
 
 ---
 
-## 🛠️ Technology Stack
-* **Cloud Provider:** AWS (VPC, EC2, EKS, ECR, S3, IAM, NAT Gateway, NACL)
-* **Infrastructure as Code (IaC):** Terraform (with S3 remote backend & DynamoDB state locking)
-* **Configuration Management:** Ansible (Dynamic Inventory, Roles)
-* **Containerization:** Docker & Docker Compose
-* **Security & Vulnerability Scanning:** Trivy
-* **Continuous Integration (CI):** Jenkins (with Groovy Shared Library)
-* **Continuous Deployment (CD) / GitOps:** ArgoCD
-* **Container Orchestration:** Kubernetes (Deployments, Services, StatefulSets, ConfigMaps, Secrets, Ingress)
+## 🛠️ Technology Stack & Project Details
+
+* **Local Environment:** `Docker` & `Docker Compose` for testing the Microservices (Frontend, Auth, Roadmap, Database) locally.
+* **Cloud Provider:** `AWS` (Custom VPC, Public/Private Subnets, IGW, NAT Gateway, NACL, Route Tables).
+* **Infrastructure as Code (IaC):** `Terraform` (Modular architecture with S3 remote backend).
+* **Configuration Management:** `Ansible` (Dynamic AWS Inventory, Roles for Java, Jenkins, Docker, and Trivy).
+* **Continuous Integration (CI):** `Jenkins` (Groovy Shared Library to dynamically build, scan, push, and update manifests).
+* **Security Scanning:** `Trivy` (Scanning Docker images for HIGH & CRITICAL vulnerabilities).
+* **Container Registry:** `AWS ECR` (Storing immutable Docker images with unique build tags).
+* **Continuous Deployment (CD):** `ArgoCD` (GitOps controller inside the cluster to automatically sync GitHub manifests).
+* **Container Orchestration:** `Kubernetes / Amazon EKS` (Deployments, ClusterIP Services, Headless Services, StatefulSets with EBS CSI Driver, ConfigMaps, Secrets).
+* **Ingress Controller:** `NGINX` mapped to an AWS Load Balancer for external traffic routing.
 
 ---
 
-## 🚀 Step-by-Step Setup Instructions
+## 🚀 Project Execution Phases
 
-### 1. Infrastructure Provisioning (Terraform)
-Navigate to the `Terraform` directory to provision the AWS infrastructure (VPC, Subnets, Jenkins EC2, EKS Cluster, ECR Repo).
-```bash
-cd Terraform
-terraform init
-terraform apply -auto-approve
-```
+### Part 1 & 2: Local Setup & Containerization
+- Cloned the application source code.
+- Created a `docker-compose.yml` to build and test the microservices and MySQL database locally to ensure cross-service communication works.
 
-### 2. Configuration Management (Ansible)
-Navigate to the `Ansible` directory to configure the Jenkins EC2 instance using a dynamic inventory. This will install Java 21, Jenkins, Docker, and Trivy.
-```bash
-cd ../Ansible
-ansible-playbook -i inventory_aws_ec2.yml playbook.yml -u ubuntu --private-key ~/.ssh/your-key.pem --ssh-common-args='-o StrictHostKeyChecking=no'
-```
+### Part 3: Infrastructure Provisioning (Terraform)
+- Provisioned a custom VPC with Public and Private subnets across multiple Availability Zones.
+- Deployed a Jenkins EC2 instance in the public subnet.
+- Deployed an EKS Cluster with managed Node Groups residing in private subnets.
+- Created an Elastic Container Registry (ECR).
 
-### 3. CI Pipeline Setup (Jenkins)
-1. Access Jenkins via `http://<JENKINS_PUBLIC_IP>:8080`.
-2. Retrieve the initial admin password from the server.
-3. Install suggested plugins and set up admin credentials.
-4. Add GitHub and AWS credentials in Jenkins.
-5. Configure the Global Pipeline Shared Library pointing to the `jenkins-shared-library` repository.
-6. Create multibranch pipelines for `auth-service`, `roadmap-service`, and `frontend` using their respective `Jenkinsfile`s.
+### Part 4: Configuration Management (Ansible)
+- Configured the EC2 instance automatically using an Ansible Playbook and AWS Dynamic Inventory.
+- Installed dependencies: Java 21, Jenkins, Docker, and Trivy via dedicated Ansible roles.
 
-### 4. GitOps CD Setup (ArgoCD & Kubernetes)
-Install ArgoCD on the EKS cluster and apply the declarative GitOps application manifest:
-```bash
-# Apply OIDC & EBS CSI Driver IAM Role (Terraform)
-# This allows StatefulSets to dynamically provision EBS volumes.
+### Part 5: Container Orchestration (Kubernetes Manifests)
+- Created a custom namespace for the application.
+- Developed `Deployment` and `Service` manifests for Frontend, Auth, and Roadmap services.
+- Created a `StatefulSet`, `Headless Service`, and `StorageClass` for the MySQL database.
+- Centralized environment variables and secrets using `ConfigMap` and `Secret`.
+- Exposed the frontend via an `Ingress` resource.
 
-# Install Ingress Controller
-kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v1.11.2/deploy/static/provider/aws/deploy.yaml
+### Part 6: Continuous Integration (Jenkins)
+- Implemented a Groovy Shared Library to standardize the pipeline steps for all microservices.
+- The pipeline stages include: Building the image, scanning with Trivy, pushing to ECR, updating the Kubernetes deployment manifest with the new image tag, and pushing the changes back to GitHub.
 
-# Apply ArgoCD Application Manifest
-kubectl apply -f argocd/application.yml
-```
-ArgoCD will automatically sync the manifests from the `kubernetes/` directory and deploy the entire microservices architecture.
-
-### 5. Accessing the Application
-Once ArgoCD syncs the application and the Load Balancer is provisioned by the Ingress Controller, retrieve the application URL:
-```bash
-kubectl get ingress -n ivolve
-```
-*Copy the `ADDRESS` provided and open it in your browser!*
+### Part 7: Continuous Deployment (ArgoCD & GitOps)
+- Installed ArgoCD on the EKS cluster.
+- Applied an ArgoCD `Application` manifest that monitors the GitHub repository.
+- ArgoCD automatically detects the new image tags pushed by Jenkins and syncs the changes to the EKS cluster without manual intervention.
 
 ---
 
-## 🧹 Cleanup
-To avoid unexpected AWS charges, destroy all provisioned infrastructure once done:
-```bash
-cd Terraform
-terraform destroy -auto-approve
-```
+## 🧹 Infrastructure Cleanup
+To prevent unwanted AWS billing, destroy the infrastructure:
+1. Run `terraform destroy -auto-approve` inside the Terraform directory.
+2. Manually delete any lingering EBS volumes or Load Balancers in the AWS Console if necessary.
