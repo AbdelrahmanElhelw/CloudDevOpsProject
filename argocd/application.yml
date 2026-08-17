@@ -9,6 +9,8 @@ spec:
     repoURL: 'https://github.com/abdelrahmanelhelw/CloudDevOpsProject.git'
     targetRevision: HEAD
     path: kubernetes 
+    directory:
+      recurse: true
   destination:
     # ده اللينك الداخلي للكوبرنيتيس (ثابت مبيتغيرش)
     server: 'https://kubernetes.default.svc'
