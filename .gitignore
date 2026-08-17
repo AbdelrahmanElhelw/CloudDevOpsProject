@@ -9,3 +9,5 @@ ivolve-project-key.pem
 ProjectTasks.pff
 
 git-jenkins-key.txt
+
+.env
