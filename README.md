@@ -26,19 +26,20 @@ graph TD
     Dev((Developer)) -->|1. Local Testing| Compose[Local Docker Compose]:::local
     Dev -->|2. Push Code| GitHub[(GitHub Repository)]:::git
     
-    subgraph CI Pipeline [Continuous Integration - Jenkins EC2]
+    subgraph CI_Pipeline [Continuous Integration - Jenkins EC2]
         Jenkins[Jenkins Master]:::ci
         DockerBuild[Build Docker Image]:::ci
         Trivy[Trivy Security Scan]:::ci
     end
     
     GitHub -->|3. Trigger Build| Jenkins
-    Jenkins --> DockerBuild --> Trivy
+    Jenkins --> DockerBuild
+    DockerBuild --> Trivy
     
-    subgraph AWS Cloud [AWS Infrastructure]
+    subgraph AWS_Cloud [AWS Infrastructure]
         ECR[(AWS ECR)]:::aws
-        subgraph VPC [Custom VPC Network]
-            subgraph EKS Cluster [Amazon EKS - Private Subnets]
+        subgraph Custom_VPC [Custom VPC Network]
+            subgraph EKS_Cluster [Amazon EKS - Private Subnets]
                 ArgoCD[ArgoCD GitOps Controller]:::cd
                 Ingress[NGINX Ingress Controller]:::aws
                 Frontend[Frontend Deployment]:::aws
@@ -55,7 +56,7 @@ graph TD
     GitHub -->|6. Auto Detect Changes| ArgoCD
     ArgoCD -->|7. Sync & Deploy Manifests| EKS_Cluster
     
-    Ingress -->|Route Traffic /| Frontend
+    Ingress -->|Route Traffic| Frontend
     Frontend -->|API Call| Auth
     Frontend -->|API Call| Roadmap
     Auth -->|Read/Write| MySQL
